@@ -54,12 +54,14 @@ Sigue estos pasos para configurar el proyecto en tu entorno de desarrollo local.
 - Una base de datos (ej. MySQL)
 
 ### 1. Clonar el Repositorio
+
 ```bash
-git clone [URL_DE_TU_REPOSITORIO]
-cd [NOMBRE_DEL_PROYECTO]
+git clone https://github.com/jcabezas/laravel-ecommerce-dashboard
+cd laravel-ecommerce-dashboard
 ```
 
 ### 2. Configuración del Backend (Laravel)
+
 ```bash
 # Instalar dependencias de PHP
 composer install
@@ -79,6 +81,7 @@ php artisan migrate
 ```
 
 ### 3. Configuración del Frontend (Vue.js)
+
 ```bash
 # Instalar dependencias de JavaScript
 npm install
@@ -99,7 +102,7 @@ Una vez completados los pasos anteriores, la aplicación estará corriendo.
 A continuación se detallan las variables de entorno más importantes que debes configurar en tu archivo `.env`:
 
 ```dotenv
-APP_NAME="Amplifica Dashboard"
+APP_NAME="Ecommerce Dashboard"
 APP_URL=http://localhost:8000
 
 DB_CONNECTION=mysql
