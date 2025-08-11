@@ -26,7 +26,7 @@ class ShopifyController extends Controller
         $request->validate(['store_url' => 'required|string']);
         $storeUrl = $this->normalizeUrl($request->query('store_url'));
         $apiKey = config('services.shopify.key');
-        $scopes = 'read_products,read_orders';
+        $scopes = 'read_products,read_orders,read_customers';
         $redirectUri = route('shopify.callback');
 
         // Guardamos la URL de la tienda para usarla en el callback

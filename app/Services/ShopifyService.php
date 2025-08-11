@@ -144,7 +144,7 @@ class ShopifyService implements ECommercePlatform
             return collect($orders)->map(function ($edge) {
                 $orderNode = $edge['node'];
                 return [
-                    'id' => $orderNode['id'],
+                    'id' => $orderNode['name'],
                     'customer' => ($orderNode['customer']['firstName'] ?? '') . ' ' . ($orderNode['customer']['lastName'] ?? 'Cliente sin nombre'),
                     'date' => Carbon::parse($orderNode['processedAt'])->format('d/m/Y H:i'),
                     'status' => $orderNode['displayFinancialStatus'] ?? 'N/A',
