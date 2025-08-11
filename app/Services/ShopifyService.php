@@ -135,7 +135,7 @@ class ShopifyService implements ECommercePlatform
 
         try {
             $response = $this->query($query, [
-                'filter' => "processed_at:>{$thirtyDaysAgo}"
+                'filter' => "processedAt:>'{$thirtyDaysAgo}'"
             ]);
             $response->throw();
 
