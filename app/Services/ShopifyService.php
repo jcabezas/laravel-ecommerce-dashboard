@@ -109,6 +109,24 @@ class ShopifyService implements ECommercePlatform
     public function getRecentOrders(array $filters = []): array
     {
         $thirtyDaysAgo = Carbon::now()->subDays(30)->toIso8601String();
+
+        $filterParts = ["created_at:>'{$thirtyDaysAgo}'"];
+
+        if (!empty($filters['status'])) {
+
+            $shopifyStatus = $this->mapStatusToShopify($filters['status']);
+            if ($shopifyStatus) {
+                $filterParts[] = "financial_status:{$shopifyStatus}";
+            }
+        }
+
+        if (!empty($filters['search'])) {
+            // El filtro de búsqueda de Shopify es amplio y busca en varios campos (cliente, número de pedido, etc.).
+            $filterParts[] = $filters['search'];
+        }
+
+        $filterString = implode(' AND ', $filterParts);
+
         $query = <<<GRAPHQL
         query(\$filter: String) {
           orders(first: 20, sortKey: PROCESSED_AT, reverse: true, query: \$filter) {
@@ -135,7 +153,7 @@ class ShopifyService implements ECommercePlatform
 
         try {
             $response = $this->query($query, [
-                'filter' => "processedAt:>'{$thirtyDaysAgo}'"
+                'filter' => $filterString
             ]);
             $response->throw();
 
@@ -148,7 +166,7 @@ class ShopifyService implements ECommercePlatform
                     'customer' => ($orderNode['customer']['firstName'] ?? '') . ' ' . ($orderNode['customer']['lastName'] ?? 'Cliente sin nombre'),
                     'date' => Carbon::parse($orderNode['processedAt'])->format('d/m/Y H:i'),
                     'status' => $orderNode['displayFinancialStatus'] ?? 'N/A',
-                    'products' => '', // La API de GraphQL hace más complejo obtener esto en una sola consulta
+                    'products' => '',
                     'total' => $orderNode['totalPriceSet']['shopMoney']['amount'],
                 ];
             })->all();
@@ -184,7 +202,7 @@ class ShopifyService implements ECommercePlatform
 
         try {
             $response = $this->query($query, [
-                'filter' => "processed_at:>{$thirtyDaysAgo} AND financial_status:paid"
+                'filter' => "processed_at:>'{$thirtyDaysAgo}' AND financial_status:paid"
             ]);
             $response->throw();
 
@@ -229,5 +247,24 @@ class ShopifyService implements ECommercePlatform
         return Http::withHeaders([
             'X-Shopify-Access-Token' => $this->store->access_token,
         ])->post($this->graphqlUrl, $payload);
+    }
+
+    /**
+     * Traduce un estado de pedido genérico al financial_status de Shopify.
+     *
+     * @param string $status El estado genérico (ej. 'completed').
+     * @return string|null El estado de Shopify correspondiente o null si no hay mapa.
+     */
+    private function mapStatusToShopify(string $status): ?string
+    {
+        $statusMap = [
+            'completed' => 'paid',
+            'processing' => 'pending',
+            'on-hold' => 'authorized',
+            'cancelled' => 'voided',
+            'failed' => 'voided', // Opcional: Mapear 'failed' a 'voided'
+        ];
+
+        return $statusMap[strtolower($status)] ?? null;
     }
 }
