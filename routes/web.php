@@ -36,4 +36,9 @@ Route::middleware('auth')->group(function () {
     Route::get('/shopify/callback', [ShopifyController::class, 'callback'])->name('shopify.callback');
 });
 
+use App\Http\Controllers\WebhookController;
+
+Route::post('/webhooks/orders', [WebhookController::class, 'orders'])
+    ->middleware(['verify.webhook', 'throttle:60,1'])->name('webhooks.orders');;
+
 require __DIR__ . '/auth.php';
